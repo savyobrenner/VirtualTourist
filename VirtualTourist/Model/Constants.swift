@@ -39,7 +39,7 @@ extension FlickrAPI {
     // MARK: Flickr Parameter Values
     struct FlickrParameterValues {
         static let SearchMethod = "flickr.photos.search"
-        static let APIKey = "124753ada7d032571d753bec60f820eb"
+        static let APIKey = "9a7606e608ef1818afd8a28ccc942ab5"
         static let ResponseFormat = "json"
         static let DisableJSONCallback = "1" /* 1 means "yes" */
         static let GalleryPhotosMethod = "flickr.galleries.getPhotos"
