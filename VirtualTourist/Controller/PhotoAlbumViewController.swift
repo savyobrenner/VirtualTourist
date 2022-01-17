@@ -9,37 +9,34 @@ import UIKit
 import MapKit
 import CoreData
 
-class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
+class PhotoAlbumViewController: UIViewController {
+    
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var collectionView: UICollectionView!
-    @IBOutlet weak var newCollectionBtn: UIButton!
+    @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    var coordinate: CLLocationCoordinate2D!
-    var photos: [Photo]!
-    var pin: Pin!
-    var dataController: DataManager!
-    
-    @IBAction func newCollectionBtnPressed(_ sender: Any) {
-        // Delete it from disk
-        pin.photos = nil
-        print(dataController.viewContext.hasChanges)
-        try? self.dataController.viewContext.save()
-        collectionView.reloadData()
-        photos.removeAll()
-        
-        getPhotos()
-    }
+    private var predicate: NSPredicate?
+    var coordinate = CLLocationCoordinate2D()
+    var dataManager: DataManager?
+    var photos = [Photo]()
+    var pin: Pin?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let predicate = NSPredicate(format: "pin == %@", pin)
-        // fetch request
+        
+        if let pin = pin {
+            predicate = NSPredicate(format: "pin == %@", pin)
+        }
+        
         let fetchRequest:NSFetchRequest<Photo> = Photo.fetchRequest()
+        
         fetchRequest.predicate = predicate
-        if let result = try? dataController.viewContext.fetch(fetchRequest){
+        
+        if let result = try? dataManager?.viewContext.fetch(fetchRequest) {
             photos = result
         }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -50,17 +47,25 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         
         let span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
         let region = MKCoordinateRegion(center: coordinate, span: span)
-        self.mapView.setRegion(region, animated: true)
+        mapView.setRegion(region, animated: true)
         
         if photos.isEmpty {
             getPhotos()
         }
-        
     }
-    // MARK:- Get photos from flickr and save them
-    func getPhotos(){
+    
+    @IBAction func newCollectionBtnPressed(_ sender: Any) {
+        pin?.photos = nil
+        try? dataManager?.viewContext.save()
+        collectionView.reloadData()
+        photos.removeAll()
+        getPhotos()
+    }
+    
+    private func getPhotos() {
         setUIEnabled(false)
-        let _ = FlickrAPI.sharedInstance().displayImageFromFlickrBySearch(coordinate) { (photosArray, error) in
+        let _ = FlickrAPI.sharedInstance().displayImageFromFlickrBySearch(coordinate) { (imagesArray, error) in
+            
             if let error = error {
                 let controller = UIAlertController(title: "", message: "\(error.localizedDescription)", preferredStyle: .alert)
                 
@@ -69,72 +74,50 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
                 self.present(controller, animated: true, completion: nil)
                 self.setUIEnabled(true)
             }
-            for img in photosArray {
-                guard let imageUrlString = img[FlickrAPI.FlickrResponseKeys.MediumURL] as? String else {
-                    debugPrint("Cannot find key '\(FlickrAPI.FlickrResponseKeys.MediumURL)' in \(img)")
-                    self.setUIEnabled(true)
-                    return
-                }
+            
+            for image in imagesArray {
                 
-                // if an image exists at the url, set the image
-                let imageURL = URL(string: imageUrlString)
+                guard let imageUrlString = image[FlickrAPI.FlickrResponseKeys.MediumURL] as? String,
+                      let imageURL = URL(string: imageUrlString),
+                      let imageData = try? Data(contentsOf: imageURL),
+                      let dataManager = self.dataManager else {
+                          debugPrint("Cannot find key '\(FlickrAPI.FlickrResponseKeys.MediumURL)' in \(image)")
+                          self.setUIEnabled(true)
+                          return
+                      }
                 
-                guard let imageData = try? Data(contentsOf: imageURL!) else {
-                    print("Image does not exist at \(String(describing: imageURL))")
-                    self.setUIEnabled(true)
-                    return
-                }
-                
-                let photo: Photo = Photo(context: self.dataController.viewContext)
-                photo.uri = imageURL
-                photo.rawPhoto = imageData
+                let photo: Photo = Photo(context: dataManager.viewContext)
+                photo.url = imageURL
+                photo.rawImage = imageData
                 photo.pin = self.pin
-                try? self.dataController.viewContext.save()
+                try? dataManager.viewContext.save()
                 self.photos.append(photo)
                 
-                performUIUpdatesOnMain {
+                DispatchQueue.main.async {
                     self.collectionView.reloadData()
                 }
             }
-            print("End")
+            
             self.setUIEnabled(true)
-            performUIUpdatesOnMain {
+            
+            DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
             
         }
-
+        
     }
     
-    // MARK: - MKMapViewDelegate
-    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        
-        let reuseId = "pin"
-        
-        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
-        
-        if pinView == nil {
-            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
-            pinView!.pinTintColor = .red
-        }
-        else {
-            pinView!.annotation = annotation
-        }
-        
-        return pinView
-    }
-    
-    func setUIEnabled(_ enabled: Bool) {
-        performUIUpdatesOnMain {
-            self.newCollectionBtn.isEnabled = enabled
+    private func setUIEnabled(_ enabled: Bool) {
+        DispatchQueue.main.async {
+            self.newCollectionButton.isEnabled = enabled
             
-            // adjust newCollectionBtn alphas
             if enabled {
-                self.newCollectionBtn.alpha = 1.0
+                self.newCollectionButton.alpha = 1.0
                 self.activityIndicator.alpha = 0.0
                 self.activityIndicator.stopAnimating()
             } else {
-                self.newCollectionBtn.alpha = 0.5
+                self.newCollectionButton.alpha = 0.5
                 self.activityIndicator.alpha = 1.0
                 self.activityIndicator.startAnimating()
             }
@@ -143,3 +126,21 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
     
 }
 
+extension PhotoAlbumViewController: MKMapViewDelegate {
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        
+        let reuseId = "pin"
+        
+        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
+        
+        if pinView == nil {
+            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
+            pinView?.pinTintColor = .red
+        } else if let pinView = pinView{
+            pinView.annotation = annotation
+        }
+        
+        return pinView
+    }
+}

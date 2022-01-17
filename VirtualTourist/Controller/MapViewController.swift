@@ -103,7 +103,10 @@ extension MapViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let controller = storyboard?.instantiateViewController(withIdentifier: "PhotoAlbumViewController") as? PhotoAlbumViewController else { return }
-        controller.coordinate = view.annotation?.coordinate
+        
+        if let coordinate = view.annotation?.coordinate {
+            controller.coordinate = coordinate
+        }
         
         for pin in pins {
             if pin.latitude.isEqual(to: view.annotation?.coordinate.latitude.magnitude ?? 90){
@@ -111,7 +114,7 @@ extension MapViewController: MKMapViewDelegate {
             }
         }
         
-        controller.dataController = dataManager
+        controller.dataManager = dataManager
         show(controller, sender: nil)
     }
     

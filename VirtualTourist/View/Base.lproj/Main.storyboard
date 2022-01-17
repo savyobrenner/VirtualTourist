@@ -134,7 +134,7 @@
                         <outlet property="activityIndicator" destination="bNd-tb-zNT" id="sfj-YB-laW"/>
                         <outlet property="collectionView" destination="mmF-P7-qLC" id="l6b-6L-ACK"/>
                         <outlet property="mapView" destination="suU-8k-Mri" id="Uhu-8b-Ci6"/>
-                        <outlet property="newCollectionBtn" destination="Mq6-U5-Osb" id="OhZ-wm-3pq"/>
+                        <outlet property="newCollectionButton" destination="Mq6-U5-Osb" id="OhZ-wm-3pq"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Spe-o8-Gf7" userLabel="First Responder" sceneMemberID="firstResponder"/>
