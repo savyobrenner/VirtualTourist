@@ -14,7 +14,6 @@
 		299B0F8B27944F2300D636A6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 299B0F8927944F2300D636A6 /* LaunchScreen.storyboard */; };
 		299B0F942794D75400D636A6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B0F932794D75400D636A6 /* DataManager.swift */; };
 		299B0F972794D79E00D636A6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B0F962794D79E00D636A6 /* Constants.swift */; };
-		299B0F992794D7C200D636A6 /* GCDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B0F982794D7C200D636A6 /* GCDManager.swift */; };
 		299B0F9B2794D80200D636A6 /* FlickrAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B0F9A2794D80200D636A6 /* FlickrAPI.swift */; };
 		299B0FA12794D88A00D636A6 /* PhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B0FA02794D88A00D636A6 /* PhotoCollectionViewCell.swift */; };
 		299B0FA42794D8BE00D636A6 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299B0FA32794D8BE00D636A6 /* MapViewController.swift */; };
@@ -33,7 +32,6 @@
 		299B0F8C27944F2300D636A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		299B0F932794D75400D636A6 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		299B0F962794D79E00D636A6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		299B0F982794D7C200D636A6 /* GCDManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GCDManager.swift; sourceTree = "<group>"; };
 		299B0F9A2794D80200D636A6 /* FlickrAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickrAPI.swift; sourceTree = "<group>"; };
 		299B0FA02794D88A00D636A6 /* PhotoCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCollectionViewCell.swift; sourceTree = "<group>"; };
 		299B0FA32794D8BE00D636A6 /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
@@ -87,7 +85,6 @@
 				299B0F962794D79E00D636A6 /* Constants.swift */,
 				299B0F932794D75400D636A6 /* DataManager.swift */,
 				299B0F9A2794D80200D636A6 /* FlickrAPI.swift */,
-				299B0F982794D7C200D636A6 /* GCDManager.swift */,
 				29E0D5C92795831100CFCA73 /* VirtualTourist.xcdatamodeld */,
 			);
 			path = Model;
@@ -195,7 +192,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				299B0FA62794D8DC00D636A6 /* PhotoAlbumViewController.swift in Sources */,
-				299B0F992794D7C200D636A6 /* GCDManager.swift in Sources */,
 				299B0F9B2794D80200D636A6 /* FlickrAPI.swift in Sources */,
 				299B0F972794D79E00D636A6 /* Constants.swift in Sources */,
 				299B0FA42794D8BE00D636A6 /* MapViewController.swift in Sources */,

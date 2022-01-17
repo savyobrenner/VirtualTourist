@@ -9,27 +9,22 @@ import UIKit
 import MapKit
 import CoreData
 
-class MapViewController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
+class MapViewController: UIViewController {
     
     @IBOutlet weak var mapView: MKMapView!
     
     var pins: [Pin] = []
-    var dataManager: DataManager!
-    
-    override func viewWillAppear(_ animated: Bool) {
-        addAnnotations()
-    }
+    var dataManager: DataManager?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // add Gesture Recognizer to map
+        
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleTap))
         gestureRecognizer.delegate = self
         mapView.addGestureRecognizer(gestureRecognizer)
         
-        // fetch request
         let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
-        if let result = try? dataManager.viewContext.fetch(fetchRequest) {
+        if let result = try? dataManager?.viewContext.fetch(fetchRequest) {
             pins = result
             mapView.removeAnnotations(mapView.annotations)
             addAnnotations()
@@ -37,87 +32,90 @@ class MapViewController: UIViewController, MKMapViewDelegate, UIGestureRecognize
         
     }
     
-    @objc func handleTap(gestureReconizer: UIGestureRecognizer) {
-        if gestureReconizer.state == UIGestureRecognizer.State.began {
+    override func viewWillAppear(_ animated: Bool) {
+        addAnnotations()
+    }
+    
+    @objc private func handleTap(gestureReconizer: UIGestureRecognizer) {
+        
+        if let dataManager = dataManager, gestureReconizer.state == UIGestureRecognizer.State.began {
             let location = gestureReconizer.location(in: mapView)
             let coordinate = mapView.convert(location,toCoordinateFrom: mapView)
-            
             let pin = Pin(context: dataManager.viewContext)
-            pin.lat = coordinate.latitude.magnitude
-            pin.lon = coordinate.longitude.magnitude
+            
+            pin.latitude = coordinate.latitude.magnitude
+            pin.longitude = coordinate.longitude.magnitude
+            
             do {
                 try dataManager.viewContext.save()
             }catch{
                 print("error")
             }
+            
             pins.append(pin)
             
-            // Add annotation:
             let annotation = MKPointAnnotation()
             annotation.coordinate = coordinate
             mapView.addAnnotation(annotation)
         }
     }
     
-    func addAnnotations(){
+    func addAnnotations() {
+        
         mapView.removeAnnotations(mapView.annotations)
         
         var annotations = [MKPointAnnotation]()
         
         for pin in pins {
-            // Notice that the float values are being used to create CLLocationDegree values.
-            // This is a version of the Double type.
             
-            let lat = CLLocationDegrees(pin.lat)
-            let long = CLLocationDegrees(pin.lon)
+            let latitude = CLLocationDegrees(pin.latitude)
+            let longitude = CLLocationDegrees(pin.longitude)
             
-            // The lat and long are used to create a CLLocationCoordinates2D instance.
-            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+            let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
             
-            // Here we create the annotation and set its coordiate, title, and subtitle properties
             let annotation = MKPointAnnotation()
             annotation.coordinate = coordinate
             
-            // Finally we place the annotation in an array of annotations.
             annotations.append(annotation)
         }
-        // When the array is complete, we add the annotations to the map.
+        
         mapView.addAnnotations(annotations)
     }
+}
+
+extension MapViewController: MKMapViewDelegate {
     
-    // MARK: - MKMapViewDelegate
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
-        let reuseId = "pin"
+        let reuseIdentifier = "pin"
         
-        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
+        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) as? MKPinAnnotationView
         
         if pinView == nil {
-            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
-            pinView!.pinTintColor = .red
-        }
-        else {
-            pinView!.annotation = annotation
+            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseIdentifier)
+            pinView?.pinTintColor = .red
+        } else if let pinView = pinView {
+            pinView.annotation = annotation
         }
         
         return pinView
     }
     
-    // This delegate method is implemented to respond to taps. It opens the photoAlbumView
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        let controller = self.storyboard!.instantiateViewController(withIdentifier: "PhotoAlbumVC") as? PhotoAlbumViewController
-        controller?.coordinate = view.annotation?.coordinate
+        guard let controller = storyboard?.instantiateViewController(withIdentifier: "PhotoAlbumViewController") as? PhotoAlbumViewController else { return }
+        controller.coordinate = view.annotation?.coordinate
         
         for pin in pins {
-            if pin.lat.isEqual(to: view.annotation?.coordinate.latitude.magnitude ?? 90){
-                controller?.pin = pin
+            if pin.latitude.isEqual(to: view.annotation?.coordinate.latitude.magnitude ?? 90){
+                controller.pin = pin
             }
         }
-        controller?.dataController = dataManager
-        self.show(controller!, sender: nil)
+        
+        controller.dataController = dataManager
+        show(controller, sender: nil)
     }
-    
     
 }
 
-
+extension MapViewController: UIGestureRecognizerDelegate {}
+ 
