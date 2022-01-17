@@ -23,7 +23,7 @@ class DataManager {
     func load(completion: (()->Void)? = nil) {
         persistentContainer.loadPersistentStores { (storeDescription, error) in
             guard error == nil else {
-                fatalError(error!.localizedDescription)
+                fatalError(error?.localizedDescription ?? "")
             }
             completion?()
         }

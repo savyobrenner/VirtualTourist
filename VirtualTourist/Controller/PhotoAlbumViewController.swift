@@ -64,7 +64,7 @@ class PhotoAlbumViewController: UIViewController {
     
     private func getPhotos() {
         setUIEnabled(false)
-        let _ = FlickrAPI.sharedInstance().displayImageFromFlickrBySearch(coordinate) { (imagesArray, error) in
+        let _ = FlickrServices.sharedInstance.displayImageFromFlickrBySearch(coordinate) { (imagesArray, error) in
             
             if let error = error {
                 let controller = UIAlertController(title: "", message: "\(error.localizedDescription)", preferredStyle: .alert)
@@ -77,11 +77,11 @@ class PhotoAlbumViewController: UIViewController {
             
             for image in imagesArray {
                 
-                guard let imageUrlString = image[FlickrAPI.FlickrResponseKeys.MediumURL] as? String,
+                guard let imageUrlString = image["url_m"] as? String,
                       let imageURL = URL(string: imageUrlString),
                       let imageData = try? Data(contentsOf: imageURL),
                       let dataManager = self.dataManager else {
-                          debugPrint("Cannot find key '\(FlickrAPI.FlickrResponseKeys.MediumURL)' in \(image)")
+                          debugPrint("Cannot find key in \(image)")
                           self.setUIEnabled(true)
                           return
                       }
@@ -143,4 +143,50 @@ extension PhotoAlbumViewController: MKMapViewDelegate {
         
         return pinView
     }
+}
+
+extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return photos.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCell", for: indexPath) as? PhotoCollectionViewCell else { return UICollectionViewCell() }
+        
+        if let rawPhoto = photos[indexPath.row].rawImage {
+            cell.photo.image = UIImage(data: rawPhoto)
+        }
+        
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        dataManager?.viewContext.delete(photos[indexPath.row])
+        try? dataManager?.viewContext.save()
+        photos.remove(at: indexPath.row)
+        collectionView.reloadData()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        let bounds = collectionView.bounds
+        
+        return CGSize(width: (bounds.width/2)-4, height: bounds.height/2)
+        
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        .init(top:2, left:2, bottom:2, right:2)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        0
+    }
+    
 }
